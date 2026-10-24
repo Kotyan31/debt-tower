@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-24T14:34:54Z",
+ "updated": "2026-10-24T15:31:18Z",
  "scores": [
   {
    "id": "jokl1985",
@@ -23,10 +23,10 @@
    "id": "morgenshtern",
    "nick": "morgenshtern",
    "days": 6,
-   "total": 32290,
-   "peak": 1912510000,
+   "total": 7211971250,
+   "peak": 7211968650,
    "big": 24997500,
-   "at": "2026-10-24T14:14:11Z"
+   "at": "2026-10-24T15:31:18Z"
   },
   {
    "id": "kotyan31",
@@ -80,7 +80,8 @@
   "900ab6650f624c1d60f7336c": "ok",
   "da7686ba3dd25b1ef015ae5f": "ok",
   "54a58f1b8455088d3054883c": "ok",
-  "bb6f54355ba92eafe8662106": "ok"
+  "bb6f54355ba92eafe8662106": "ok",
+  "cf8a571aab2cd2ad2a9bde20": "ok"
  },
  "code": [
   "b01480df77cda4c5a309271c1ba37f4f",
@@ -312,7 +313,13 @@
   "6287921c67378ffbb095b676": {
    "gk": "BEDPno3zFudEBGaDEUTEbt0qNLlB7tmWlqGkfcIx56DEhNEc3Jo/TostdvMgzjKlPzY0aTrGKY2SK9MV5f5LQhM=",
    "sh": "091e61adbe7586fe4b95a1d7647e1ceb2edf797a7467a8c520bd4c02484aa7ec",
-   "at": 1792852512
+   "at": 1792852512,
+   "used": true
+  },
+  "5e5d17574e0d4c195d94aab5": {
+   "gk": "BPTTS3kEFQPVHXdLlgS1wGbq7It6JUap5huhhDaEnbZjJ8HezI+KdwZd/zYcpTzjX3+xgRpqa/OUGzaLBnr0DHM=",
+   "sh": "d27a36a90c796d7cbd94964b5414da73c52db87b13df2b1d9edf4870ba7f44fc",
+   "at": 1792855870
   }
  }
 }
