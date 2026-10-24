@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-24T13:14:41Z",
+ "updated": "2026-10-24T13:17:34Z",
  "scores": [
   {
    "id": "kotyan31",
@@ -9,6 +9,15 @@
    "peak": 3961,
    "big": 1645,
    "at": "2026-10-24T13:14:41Z"
+  },
+  {
+   "id": "jokl1985",
+   "nick": "jokl1985",
+   "days": 0,
+   "total": 0,
+   "peak": 500,
+   "big": 0,
+   "at": "2026-10-24T13:17:34Z"
   }
  ],
  "players": {
@@ -16,10 +25,16 @@
    "nick": "Kotyan31",
    "key": "BBWbuO4wYxl+/rKDLh8gmT9QY0euzUfWgxiWvN6g+PvExUYFawAU5vDzr+7BuH7ZwMVOTgpvB4Wxh+9PqEVecV4=",
    "since": "2026-10-24T13:14:41Z"
+  },
+  "jokl1985": {
+   "nick": "jokl1985",
+   "key": "BBvrRICgH3HSQf3EqkBo3qkJylhkZaM2b5KOT09g1BgfpMvZkrtkqcwer5caMOGEJKWSUSRCAoovOz788Iw5ed4=",
+   "since": "2026-10-24T13:17:34Z"
   }
  },
  "acks": {
-  "d14811354a9b9bd73a84a464": "ok"
+  "d14811354a9b9bd73a84a464": "ok",
+  "b16d477e16f2cf619f27bdb1": "ok"
  },
  "code": [
   "b01480df77cda4c5a309271c1ba37f4f",
@@ -41,7 +56,8 @@
   "d8156aa37a1e17babf11f9df": {
    "gk": "BO7/emHlaysLDOVHxUEMQ/2vcBlchtI+wkePn+rMhx1TStifkdjk/vDvLCip45uX4P7EYWlSo5fx2eMg/yzIVzM=",
    "sh": "b926e8fad750b130f709fc95ad1e3c03f5bf91ebdb31485247cf6f8a95fbce85",
-   "at": 1792847552
+   "at": 1792847552,
+   "used": true
   },
   "e4e12d40309d4c9429088bf8": {
    "gk": "BK0waKw3w5nQgdTWiMK/mJwPYpWqI/VMTJKVW3yyvuRAkuEtIyCGM+37+fSbckY5zpx/A7vm9zJsFfx7V0LSFeY=",
