@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-24T14:14:11Z",
+ "updated": "2026-10-24T14:22:31Z",
  "scores": [
   {
    "id": "jokl1985",
@@ -24,8 +24,8 @@
    "nick": "morgenshtern",
    "days": 6,
    "total": 32290,
-   "peak": 30675,
-   "big": 470,
+   "peak": 26700000,
+   "big": 12698730,
    "at": "2026-10-24T14:14:11Z"
   },
   {
@@ -77,7 +77,8 @@
   "87cea186ef1dfd6e5f2ac1d4": "low",
   "05f840b8ae5f20ae592998f1": "ok",
   "725a4e4a8f6e91ecc4005131": "ok",
-  "900ab6650f624c1d60f7336c": "ok"
+  "900ab6650f624c1d60f7336c": "ok",
+  "da7686ba3dd25b1ef015ae5f": "ok"
  },
  "code": [
   "b01480df77cda4c5a309271c1ba37f4f",
@@ -291,7 +292,8 @@
   "54942afb2254c6e7bbe1abfc": {
    "gk": "BDwKghROOXAARCIJ6rTszadSuhaYKdm+bssegASb9rJ1Jee2VNrBhbg1eQE/RFLVAH0WbwGK3LYyvoUd1LRhslw=",
    "sh": "42746d5f5296d57ff2c070ca90b3eff96f14b6b15ce0abd4cf978367fa7741f0",
-   "at": 1792851677
+   "at": 1792851677,
+   "used": true
   }
  }
 }
