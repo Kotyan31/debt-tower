@@ -96,7 +96,7 @@ export function Scene() {
       <World />
       {hi && (
         <EffectComposer multisampling={4}>
-          <Bloom mipmapBlur intensity={0.85} luminanceThreshold={0.82} luminanceSmoothing={0.2} />
+          <Bloom mipmapBlur intensity={0.45} luminanceThreshold={0.95} luminanceSmoothing={0.2} />
           <Vignette eskil={false} offset={0.25} darkness={0.55} />
         </EffectComposer>
       )}

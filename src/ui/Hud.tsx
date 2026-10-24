@@ -45,7 +45,8 @@ export function Hud() {
         </div>
       </div>
       {!g.table && !g.liftOpen && <div className="floor-dock glass">
-        <div className="floor-dock-head"><span className="floor-badge">{run.floor + 1}</span><div><b>{t.floors[run.floor]}</b><span>{run.unlocked < FLOORS.length - 1 ? fill(t.hud.nextFloor, { x: money(FLOORS[run.unlocked + 1].unlock) }) : t.hud.topFloor}</span></div></div>
+        <div className="floor-dock-head"><span className="floor-badge">{run.floor + 1}</span><div><b>{t.floors[run.floor]}</b><span>{run.unlocked < FLOORS.length - 1 ? fill(t.hud.roundProgress, { a: Math.min(run.rounds, FLOORS[run.unlocked + 1].rounds), b: FLOORS[run.unlocked + 1].rounds }) : t.hud.topFloor}</span></div></div>
+        <div className="floor-passes" aria-label={t.lift.title}>{FLOORS.map((f, i) => <button key={i} className={(i <= run.unlocked ? 'available ' : '') + (i === run.floor ? 'current' : '')} aria-label={`${t.hud.floor} ${i + 1}: ${t.floors[i]}`} title={i <= run.unlocked ? t.floors[i] : fill(t.lift.unlockWays, { r: f.rounds, x: money(f.unlock), d: f.day })} disabled={i > run.unlocked} onClick={() => g.set({ liftOpen: true })}>{i + 1}<small>{i <= run.unlocked ? '✓' : f.rounds}</small></button>)}</div>
         <nav aria-label={t.hud.tables}>{run.tables.map(id => <button key={id} className={'table-link' + (g.near?.k === 'table' && g.near.id === id ? ' near' : '')} onClick={() => visitTable(run.tables, id)}><span aria-hidden="true">{GAME_ICON[id]}</span><span>{t.games[id]}</span></button>)}</nav>
       </div>}
       {ch && !g.table && (
@@ -54,6 +55,7 @@ export function Hud() {
           {run.luckyUntil > now && <div className="good">🪙 {fill(t.hud.lucky, { s: Math.ceil((run.luckyUntil - now) / 1000) })}</div>}
         </div>
       )}
+      {g.toast && <div key={g.toast.at} className="toast glass">{g.toast.text}</div>}
       {!g.table && usable.length > 0 && (
         <div className="items-bar">
           {usable.map(i => {
@@ -73,7 +75,6 @@ export function Hud() {
         </div>
       )}
       {!g.table && !g.near && <div className="hint glass">{touch ? t.hud.moveTouch : t.hud.move}</div>}
-      {g.toast && <div key={g.toast.at} className="toast glass">{g.toast.text}</div>}
     </>
   );
 }

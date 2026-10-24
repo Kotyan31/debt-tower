@@ -37,14 +37,13 @@ export function signTexture(text: string, color: string): Texture {
     while (g.measureText(text).width > w - 40 && size > 20) { size -= 2; g.font = `${size}px ${FONT}`; }
     g.textAlign = 'center'; g.textBaseline = 'middle';
     const tw = Math.min(w - 8, g.measureText(text).width + 56);
-    rrect(g, (w - tw) / 2, 18, tw, h - 36, 40);
-    g.fillStyle = 'rgba(10, 8, 22, .62)'; g.fill();
-    g.shadowColor = color; g.shadowBlur = 24;
+    rrect(g, (w - tw) / 2, 18, tw, h - 36, 8);
+    g.fillStyle = 'rgba(16, 29, 29, .94)'; g.fill();
+    g.lineWidth = 3; g.strokeStyle = color; g.stroke();
+    g.fillStyle = '#f2e5c6';
+    g.fillText(text, w / 2, h / 2 + 4);
     g.fillStyle = color;
-    g.fillText(text, w / 2, h / 2 + 4);
-    g.shadowBlur = 6; g.fillStyle = '#fff';
-    g.globalAlpha = 0.85;
-    g.fillText(text, w / 2, h / 2 + 4);
+    for (const x of [(w - tw) / 2 + 10, (w + tw) / 2 - 10]) { g.beginPath(); g.arc(x, h / 2, 3, 0, 7); g.fill(); }
   });
 }
 
@@ -155,6 +154,28 @@ export function slotMarqueeTexture(): Texture {
     g.font = '900 100px system-ui, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
     g.fillStyle = '#f5d792'; g.fillText('777', w / 2, h / 2 + 5);
     for (const x of [36, w - 36]) for (const y of [30, 64, 98]) { g.beginPath(); g.arc(x, y, 4, 0, Math.PI * 2); g.fill(); }
+  });
+}
+
+/** A hand-printed club notice: each floor carries its own motto. */
+export function clubPosterTexture(floor: number, title: string, line: string): Texture {
+  return make(`club-poster|${floor}|${title}|${line}`, 512, 640, (g, w, h) => {
+    g.fillStyle = '#e8dbb6'; g.fillRect(0, 0, w, h);
+    g.strokeStyle = '#3a514b'; g.lineWidth = 10; g.strokeRect(18, 18, w - 36, h - 36);
+    g.lineWidth = 2; g.strokeRect(29, 29, w - 58, h - 58);
+    g.fillStyle = '#304a43'; g.font = '900 64px system-ui'; g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.fillText('№ ' + (floor + 1), w / 2, 90);
+    // Shark profile, drawn in ink rather than relying on an emoji font.
+    g.beginPath(); g.moveTo(94, 320); g.quadraticCurveTo(175, 230, 303, 266); g.lineTo(245, 173); g.lineTo(360, 282);
+    g.lineTo(430, 261); g.lineTo(407, 309); g.lineTo(440, 348); g.lineTo(359, 327); g.quadraticCurveTo(255, 399, 94, 320); g.fill();
+    g.fillStyle = '#e8dbb6'; g.beginPath(); g.arc(157, 305, 5, 0, 7); g.fill();
+    let size = 42; g.font = `800 ${size}px system-ui`; while (g.measureText(title).width > 430) { size--; g.font = `800 ${size}px system-ui`; }
+    g.fillStyle = '#304a43'; g.fillText(title, w / 2, 425);
+    g.font = '24px system-ui';
+    const words = line.split(' '); let row = '', y = 485;
+    for (const word of words) { const next = row ? row + ' ' + word : word; if (g.measureText(next).width > 400) { g.fillText(row, w / 2, y); y += 32; row = word; } else row = next; }
+    g.fillText(row, w / 2, y);
+    g.save(); g.translate(370, 566); g.rotate(-0.14); g.strokeStyle = '#a14b3e'; g.lineWidth = 4; g.strokeRect(-75, -25, 150, 50); g.fillStyle = '#a14b3e'; g.font = 'bold 25px system-ui'; g.fillText('GENA', 0, 1); g.restore();
   });
 }
 

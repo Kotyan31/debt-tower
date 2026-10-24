@@ -11,13 +11,16 @@ import { store, b64, unb64, hex, sha256hex } from './storage.ts';
 import { type Account, getAcct, setAcct, normNick, pubOf, signStr } from './account.ts';
 import { FAKE, HOME, codeReady, getCode, secureBytes } from './guard.ts';
 import type { Act, Summary } from '../core/index.ts';
+import { RUN_V } from '../core/index.ts';
+import { validRows, type ScoreRow } from './leaderboard-data.ts';
+import { dictNow } from '../i18n/index.ts';
 
 export const RESULT_V = 1;
 const OUTBOX = 'dt-outbox';
 const LOCAL = 'dt-top';
 const MAX_BODY = 60000;
 
-export interface Row { id: string; nick: string; days: number; total: number; peak: number; big: number; at: string | number; pend?: boolean }
+export type Row = ScoreRow;
 export type Ack = 'ok' | 'low' | 'key' | 'bad' | 'bot' | 'old' | 'nostart' | 'time';
 interface Cfg { issue: number; tok: string }
 interface Players { [id: string]: { nick: string; key: string } }
@@ -25,6 +28,8 @@ interface Players { [id: string]: { nick: string; key: string } }
 export interface LbState {
   mode: 'loading' | 'gh' | 'local';
   rows: Row[];
+  localRows: Row[];
+  fingerprintReady: boolean;
   players: Players;
   acks: Record<string, Ack>;
   cfg: Cfg | null;
@@ -35,9 +40,9 @@ export interface LbState {
 }
 
 export interface RunMark { g: string; jwk: JsonWebKey }
-export interface Outbox { nonce: string; sum: Summary; seed: string; log: string; t: number; g: string; gs: string; sent?: boolean }
+export interface Outbox { rules?: number; nonce: string; sum: Summary; seed: string; log: string; t: number; g: string; gs: string; sent?: boolean }
 
-export const useLb = create<LbState>(() => ({ mode: 'loading', rows: [], players: {}, acks: {}, cfg: null, acct: getAcct(), status: '', pending: null }));
+export const useLb = create<LbState>(() => ({ mode: 'loading', rows: [], localRows: localTop(), fingerprintReady: false, players: {}, acks: {}, cfg: null, acct: getAcct(), status: '', pending: null }));
 
 /** "owner/repo" from a *.github.io address, or VITE_LB_REPO */
 export function repoOf(): string {
@@ -56,10 +61,10 @@ async function repoFile<T>(path: string): Promise<T> {
   const repo = repoOf();
   if (!repo) throw new Error('no repo');
   try {
-    const r = await fetch(`https://api.github.com/repos/${repo}/contents/${path}`, { headers: { Accept: 'application/vnd.github.raw' }, cache: 'no-store' });
+    const r = await fetch(`https://api.github.com/repos/${repo}/contents/${path}`, { headers: { Accept: 'application/vnd.github.raw+json' }, cache: 'no-store', signal: AbortSignal.timeout(10000) });
     if (r.ok) return await r.json();
   } catch { /* rate limit or offline */ }
-  const r = await fetch(`https://raw.githubusercontent.com/${repo}/main/${path}?t=${Date.now()}`, { cache: 'no-store' });
+  const r = await fetch(`https://raw.githubusercontent.com/${repo}/main/${path}?t=${Date.now()}`, { cache: 'no-store', signal: AbortSignal.timeout(10000) });
   if (!r.ok) throw new Error('no file');
   return r.json();
 }
@@ -70,13 +75,15 @@ export const canSend = () => {
 };
 
 export function localTop(): Row[] {
-  try { const t = JSON.parse(store.get(LOCAL) || '[]'); return Array.isArray(t) ? t : []; } catch { return []; }
+  try { return validRows(JSON.parse(store.get(LOCAL) || '[]')); } catch { return []; }
 }
-export function localAdd(nick: string, sum: Summary) {
-  const t = localTop();
-  t.push({ id: String(Date.now()), nick, days: sum.days, total: sum.total, peak: sum.peak, big: sum.big, at: Date.now() });
+export function localAdd(nick: string, sum: Summary, id = String(Date.now())) {
+  const t = localTop().filter(r => r.id !== id);
+  t.push({ id, nick, days: sum.days, total: sum.total, peak: sum.peak, big: sum.big, at: Date.now() });
   t.sort((a, b) => b.days - a.days || b.total - a.total);
-  store.set(LOCAL, JSON.stringify(t.slice(0, 20)));
+  const rows = t.slice(0, 100);
+  store.set(LOCAL, JSON.stringify(rows));
+  useLb.setState({ localRows: rows });
 }
 
 export async function load() {
@@ -84,8 +91,8 @@ export async function load() {
     const j = await repoFile<{ scores: Row[]; players: Players; acks: Record<string, Ack> }>('data/scores.json');
     if (!j || !Array.isArray(j.scores)) throw new Error('bad table');
     let cfg = useLb.getState().cfg;
-    if (!cfg) { try { cfg = await repoFile<Cfg>('data/lb.json'); } catch { cfg = null; } }
-    useLb.setState({ mode: 'gh', rows: j.scores, players: j.players || {}, acks: j.acks || {}, cfg });
+    try { cfg = await repoFile<Cfg>('data/lb.json'); } catch { /* retain last known configuration */ }
+    useLb.setState({ mode: 'gh', rows: validRows(j.scores), players: j.players || {}, acks: j.acks || {}, cfg });
     const p = useLb.getState().pending;
     if (p && j.acks?.[p.nonce]) settle(j.acks[p.nonce]);
   } catch {
@@ -103,6 +110,7 @@ async function post(body: string) {
   const s = useLb.getState();
   const r = await fetch(`https://api.github.com/repos/${repoOf()}/issues/${s.cfg!.issue}/comments`, {
     method: 'POST',
+    signal: AbortSignal.timeout(15000),
     headers: { Authorization: 'Bearer ' + deobf(s.cfg!.tok), Accept: 'application/vnd.github+json', 'Content-Type': 'application/json' },
     body: JSON.stringify({ body }),
   });
@@ -140,10 +148,10 @@ export const runCore = (o: { g: string; seed: string; log: string; sum: Summary 
 /** a finished run: kept in the outbox until GitHub has it */
 export async function submitRun(seed: string, log: Act[], sum: Summary, mark: RunMark | null) {
   const a = useLb.getState().acct;
-  localAdd(a ? a.nick : '—', sum);
-  if (!mark || useLb.getState().mode !== 'gh') return;
+  localAdd(a ? a.nick : dictNow().lb.guest, sum, seed);
+  if (!mark || useLb.getState().mode !== 'gh') { useLb.setState({ status: 'local' }); return; }
   const packed = await deflate(JSON.stringify(log));
-  const ob: Outbox = { nonce: hex(secureBytes(12)), sum, seed, log: packed, t: Date.now(), g: mark.g, gs: '' };
+  const ob: Outbox = { rules: RUN_V, nonce: hex(secureBytes(12)), sum, seed, log: packed, t: Date.now(), g: mark.g, gs: '' };
   try {
     const key = await crypto.subtle.importKey('jwk', mark.jwk, { name: 'ECDSA', namedCurve: 'P-256' }, false, ['sign']);
     ob.gs = b64(new Uint8Array(await crypto.subtle.sign({ name: 'ECDSA', hash: 'SHA-256' }, key, new TextEncoder().encode(runCore(ob)))));
@@ -161,7 +169,7 @@ export async function flushOutbox() {
   if (ob.sent) { pollAck(); return; }
   useLb.setState({ status: 'sending' });
   try {
-    const p = JSON.stringify({ v: RESULT_V, nick: a.nick, nonce: ob.nonce, t: ob.t, code: getCode(), g: ob.g, gs: ob.gs, seed: ob.seed, sum: ob.sum, log: ob.log });
+    const p = JSON.stringify({ v: RESULT_V, rules: ob.rules ?? 1, nick: a.nick, nonce: ob.nonce, t: ob.t, code: getCode(), g: ob.g, gs: ob.gs, seed: ob.seed, sum: ob.sum, log: ob.log });
     const body = JSON.stringify({ p, s: await signStr(a, p), k: pubOf(a) });
     if (body.length <= MAX_BODY) await post(body);
     else {   // a long run goes in parts; the server joins them by the nonce
@@ -172,8 +180,8 @@ export async function flushOutbox() {
     store.set(OUTBOX, JSON.stringify(ob));
     useLb.setState({ status: 'sent' });
     pollAck();
-  } catch {
-    useLb.setState({ status: 'offline' });
+  } catch (e) {
+    useLb.setState({ status: e instanceof Error && /HTTP (401|403)/.test(e.message) ? 'auth' : 'offline' });
   }
 }
 
@@ -205,7 +213,7 @@ export function logout() { setAcct(null); useLb.setState({ acct: null, status: '
 
 let loaded: Promise<void> = Promise.resolve();
 export function boot() {
-  loaded = load();
+  loaded = Promise.all([load(), codeReady]).then(() => { useLb.setState({ fingerprintReady: !!getCode() }); });
   loaded.then(() => { flushOutbox(); });
   setInterval(() => { if (!document.hidden && !useLb.getState().pending) load(); }, 180000);
 }

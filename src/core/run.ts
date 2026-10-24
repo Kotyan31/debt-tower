@@ -20,10 +20,10 @@ import { GAMES } from './games/index.ts';
 import { ITEM, LUCKY_BONUS, LUCKY_MS, ENERGY_MS } from './items.ts';
 import {
   START, DAY_MS, FLOORS, TABLES_PER_FLOOR, ORGANS, ORGAN_SHARE, ORGAN_TICKETS, QUOTA_TICKETS, RICH_TICKET,
-  FREEDOM_TICKETS, CHALLENGE_TICKETS, quotaFor,
+  FREEDOM_TICKETS, CHALLENGE_TICKETS, quotaFor, floorUnlocked,
 } from './economy.ts';
 
-export const RUN_V = 1;
+export const RUN_V = 2;
 /** the furthest an action may be from the run's start: a week */
 const MAX_T = 7 * 86400 * 1000;
 
@@ -93,7 +93,9 @@ export function newRun(seed: string): Run {
 
 function seatTables(r: Run, rng: Rng) {
   const pool = FLOORS[r.floor].pool.slice();
-  r.tables = shuffle(pool, rng).slice(0, TABLES_PER_FLOOR);
+  // The four signature games are always present; the fifth seat rotates.
+  r.tables = r.floor === 0 ? shuffle(pool, rng).slice(0, TABLES_PER_FLOOR)
+    : shuffle([...pool.slice(0, 4), shuffle(pool.slice(4), rng)[0]], rng);
   r.pre = {};
   for (const id of r.tables) { const g = GAMES[id]; if (g.prep) r.pre[id] = g.prep(rng); }
 }
@@ -106,7 +108,7 @@ function newChallenge(rng: Rng): Challenge {
 
 function bumpCash(r: Run) {
   if (r.cash > r.peak) r.peak = r.cash;
-  while (r.unlocked < FLOORS.length - 1 && r.peak >= FLOORS[r.unlocked + 1].unlock) r.unlocked++;
+  while (r.unlocked < FLOORS.length - 1 && floorUnlocked(r.unlocked + 1, r)) r.unlocked++;
 }
 
 function makeCtx(r: Run, t: number, id: GameId): Ctx {
@@ -211,6 +213,7 @@ export function apply(r: Run, a: Act): void {
     case 'n': {
       if (r.phase !== 'shop') fail('phase');
       r.day++;
+      bumpCash(r);
       r.quota = r.debt > 0 ? Math.min(r.debt, quotaFor(r.day)) : quotaFor(r.day);
       r.dayStart = t;
       r.dayLen = DAY_MS;

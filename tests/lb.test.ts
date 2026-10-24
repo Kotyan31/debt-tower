@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { createHash, generateKeyPairSync, sign as csign } from 'node:crypto';
 import { deflateSync } from 'node:zlib';
-import { tryApply, summary, type Act, type Run } from '../src/core/index.ts';
+import { tryApply, summary, replay, RUN_V, type Act, type Run } from '../src/core/index.ts';
 // @ts-expect-error plain JS module without types
 import { handleAll, freshTable, finish } from '../scripts/lb.mjs';
 import { botRun } from './bot.ts';
@@ -40,7 +40,7 @@ function comments(o: { seed: string; log: Act[]; run: Run; nick?: string; acct?:
   const log = deflateSync(Buffer.from(JSON.stringify(o.log))).toString('base64');
   const gs = runKey.sign(JSON.stringify({ g, seed: o.seed, log, sum }));
   const took = o.took ?? o.run.t + 30000;
-  const p: any = { v: 1, nick: o.nick ?? 'Tester', nonce: 'f'.repeat(8) + (cid++).toString(16).padStart(8, '0'), t: t0 + took, code: CODE, g, gs, seed: o.seed, sum, log };
+  const p: any = { v: 1, rules: RUN_V, nick: o.nick ?? 'Tester', nonce: 'f'.repeat(8) + (cid++).toString(16).padStart(8, '0'), t: t0 + took, code: CODE, g, gs, seed: o.seed, sum, log };
   o.tamper?.(p);
   const ps = JSON.stringify(p);
   const result = { id: cid++, created_at: new Date(t0 + took).toISOString(), body: JSON.stringify({ p: ps, s: acct.sign(ps), k: acct.pub }) };
@@ -80,7 +80,8 @@ describe('leaderboard worker', () => {
 
   it('rejects a result sent sooner than the run takes', () => {
     const t = table();
-    const c = comments({ seed, ...honest, took: 1000 });
+    const log = honest.log.map(([time, ...rest]) => [time + 60000, ...rest] as Act);
+    const c = comments({ seed, log, run: replay(seed, log), took: 1000 });
     handleAll(c.list, t, 'now');
     expect(t.acks[c.nonce]).toBe('time');
   });

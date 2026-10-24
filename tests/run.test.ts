@@ -48,7 +48,8 @@ describe('run', () => {
     r = tryApply(r, [0, 'n'])!;
     r = tryApply(r, [1000, 'e'])!;
     expect(r.phase).toBe('shark');
-    r = tryApply(r, [1100, 'p'])!;   // $500 against a $1,500 quota
+    r.cash = r.quota - 1;
+    r = tryApply(r, [1100, 'p'])!;
     expect(r.phase).toBe('over');
     expect(r.ending).toBe('broke');
   });

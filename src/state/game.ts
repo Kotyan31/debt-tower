@@ -1,15 +1,16 @@
 import { create } from 'zustand';
-import { type Run, type Act, type Op, type GameId, newRun, tryApply, replay, summary, deadline, GAMES } from '../core/index.ts';
+import { type Run, type Act, type Op, type GameId, newRun, tryApply, replay, summary, deadline, GAMES, RUN_V } from '../core/index.ts';
 import { PLINKO_FALL } from '../core/games/plinko.ts';
 import { store, hex } from '../net/storage.ts';
 import { secureBytes } from '../net/guard.ts';
 import { type RunMark, markStart, submitRun } from '../net/leaderboard.ts';
 import { sfx } from '../audio/sfx.ts';
 import { world, SPAWN } from '../scene/world.ts';
+import { dictNow, fill } from '../i18n/index.ts';
 
 const SAVE = 'dt-run';
 
-interface Saved { seed: string; epoch: number; log: Act[]; mark: RunMark | null; submitted: boolean }
+interface Saved { rules: number; seed: string; epoch: number; log: Act[]; mark: RunMark | null; submitted: boolean }
 /** money that is already in the run but still rolling on screen */
 interface Hold { v: number; until: number }
 export type Modal = null | 'leaders' | 'settings' | 'help' | 'confirmNew' | 'confirmEnd' | 'confirmRetire';
@@ -42,12 +43,16 @@ export interface GameState {
 
 function persist(s: GameState) {
   if (!s.run) return;
-  const saved: Saved = { seed: s.seed, epoch: s.epoch, log: s.log, mark: s.mark, submitted: s.submitted };
+  const saved: Saved = { rules: RUN_V, seed: s.seed, epoch: s.epoch, log: s.log, mark: s.mark, submitted: s.submitted };
   store.set(SAVE, JSON.stringify(saved));
 }
 
 function readSave(): Saved | null {
-  try { const j = JSON.parse(store.get(SAVE) || 'null'); return j && j.seed && Array.isArray(j.log) ? j : null; } catch { return null; }
+  try { const j = JSON.parse(store.get(SAVE) || 'null'); return j?.rules === RUN_V && j.seed && Array.isArray(j.log) ? j : null; } catch { return null; }
+}
+
+export function hasLegacySave() {
+  try { const s = JSON.parse(store.get(SAVE) || 'null'); return !!s?.seed && !s.submitted && s.rules !== RUN_V; } catch { return false; }
 }
 
 /** how long a round's result keeps rolling on screen */
@@ -96,6 +101,12 @@ export const useGame = create<GameState>((set, get) => ({
     }
     set({ run: next, log: [...s.log, a], holds });
     if (next.note?.k === 'challenge' && next.note.t !== before.note?.t) sfx('ticket');
+    if (next.unlocked > before.unlocked) {
+      const at = Date.now();
+      set({ toast: { text: fill(dictNow().hud.floorOpened, { n: next.unlocked + 1, name: dictNow().floors[next.unlocked] }), at, kind: 'good' } });
+      setTimeout(() => { if (get().toast?.at === at) set({ toast: null }); }, 3200);
+      sfx('lift');
+    }
     if (next.floor !== before.floor || (next.phase === 'day' && before.phase !== 'day')) resetWalker();
     if (next.phase === 'over' && !get().submitted) {
       set({ submitted: true, table: null, liftOpen: false });

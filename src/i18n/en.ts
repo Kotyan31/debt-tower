@@ -2,8 +2,11 @@ import type { Dict } from './index.ts';
 
 export const en: Dict = {
   title: 'Debt Tower',
-  tagline: 'You owe the loan shark $50,000. You have $500 and five minutes a day.',
+  scene: { mottos: ['No credit. Cash on the felt.', 'Good manners are included.', 'Eyes on the multiplier. Not the drop.', 'Gena is still above you.'] },
+  tagline: 'Five minutes until Gena arrives. How far will your luck take you?',
   menu: {
+    club: "Gena's private club", debtNote: 'Your signed IOU', sharkStamp: 'Gena approved', rounds: 'After {n} rounds',
+    newRules: 'Progression has changed. Start a new run to use the new rules; your records are preserved.',
     startCash: 'starting cash', dayTime: 'each day', gamesCount: 'games in the tower',
     virtual: 'All money is virtual. Risk is part of the game.',
     tower: 'Four floors to freedom', entrance: 'Entrance', climb: 'Win. Climb. Pay your debt.',
@@ -36,6 +39,7 @@ export const en: Dict = {
     pause: 'The casino clock never stops.',
     ready: 'Quota covered', shortfall: '{x} still needed', tables: 'Tables on this floor',
     nextFloor: 'Next floor: {x}', topFloor: 'You reached the top',
+    roundProgress: 'Next pass: {a}/{b} rounds', floorOpened: 'Floor {n} pass: {name}',
   },
   challenge: {
     streak: 'Win {n} in a row',
@@ -45,6 +49,8 @@ export const en: Dict = {
   },
   floors: ['The Alley', 'The Lounge', 'Neon Deck', 'Penthouse'],
   lift: {
+    hint: 'Every completed round brings you closer to a new floor. Winning is optional.',
+    unlockWays: '{r} rounds, {x} peak cash or day {d}',
     title: 'Lift',
     opensAt: 'opens once you hold {x}',
     limits: 'bets {a}–{b}',
@@ -197,6 +203,9 @@ export const en: Dict = {
     menu: 'Menu',
   },
   lb: {
+    device: 'This device', world: 'Shared', refresh: 'Refresh scores', loading: 'Loading shared scores…', localSaved: 'Saved to this device’s leaderboard.',
+    guest: 'Guest',
+    auth: 'GitHub rejected the upload. Your local score is saved; the game owner needs to check the leaderboard token.',
     title: 'Leaderboard',
     days: 'Days',
     peak: 'Cash',
@@ -255,7 +264,8 @@ export const en: Dict = {
     body: [
       'You owe the loan shark $50,000. Every day you get 5 minutes in the casino tower.',
       'In the evening the shark takes the day’s quota. Short? You can give up organs… or it is over.',
-      'Floors open once you have held enough cash: $5k, $25k, $100k. Higher floors, bigger bets.',
+      'Floors open after 4, 12 and 24 completed rounds, or earlier at $1,200, $3,000 and $8,000 peak cash. You do not need to win.',
+      'Start with $800. The first quota is $300, growing by 28% a day. Every floor has affordable bets.',
       'Tickets come from quotas and challenges. Between days they buy items that bend the odds.',
       'The leaderboard ranks quotas paid, most cash held and biggest win.',
       'All money is virtual. This is a game about gambling, not an ad for it: the house always wins.',

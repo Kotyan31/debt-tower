@@ -19,7 +19,7 @@ import { createHash, createPublicKey, verify as cverify } from 'node:crypto';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { inflateSync } from 'node:zlib';
 import { fileURLToPath } from 'node:url';
-import { replay, summary } from '../src/core/index.ts';
+import { replay, summary, RUN_V } from '../src/core/index.ts';
 
 const API = 'https://api.github.com';
 const REPO = process.env.REPO || '';
@@ -106,7 +106,8 @@ async function ensureConfig() {
   }
   cfg.issue = issue;
   const pat = (process.env.LB_PAT || '').trim();
-  if (pat) cfg.tok = obfuscate(pat); else delete cfg.tok;
+  if (pat) cfg.tok = obfuscate(pat);
+  else console.warn('LB_PAT is missing: shared submissions are disabled until a repository secret is configured.');
   return cfg;
 }
 
@@ -158,7 +159,7 @@ export function handleResult(body, at, table, now) {
   const key = pointKey(m.k);
   if (!key || !verifySig(key, m.p, m.s)) return bad(nonce, 'signature');
   const nick = clean(o.nick ?? '');
-  if (o.v !== RESULT_V || !table.code.includes(String(o.code))) return [nonce, 'old'];
+  if (o.v !== RESULT_V || o.rules !== RUN_V || !table.code.includes(String(o.code))) return [nonce, 'old'];
   if (!NICK_RE.test(nick)) return bad(nonce, 'nick');
   if (!Number.isFinite(+o.t) || Math.abs(at * 1000 - +o.t) > 7 * DAY * 1000) return bad(nonce, 'week-old');
 

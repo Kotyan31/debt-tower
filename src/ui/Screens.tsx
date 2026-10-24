@@ -5,8 +5,10 @@ import { FLOORS, ITEMS, ORGANS, ORGAN_SHARE, ORGAN_TICKETS, quotaFor, type ItemI
 import { ITEM_ICON, GAME_ICON } from './common.tsx';
 import { sfx } from '../audio/sfx.ts';
 import { Account } from './Account.tsx';
-import { useLb, canSend } from '../net/leaderboard.ts';
+import { useLb, canSend, load } from '../net/leaderboard.ts';
+import { rankRows, type ScoreSort } from '../net/leaderboard-data.ts';
 import { FAKE, HOME } from '../net/guard.ts';
+import { HouseMark } from './HouseMark.tsx';
 
 /* ---------- lift ---------- */
 export function LiftMenu() {
@@ -16,8 +18,9 @@ export function LiftMenu() {
   const go = (f: number) => { if (g.act('f', f)) { sfx('lift'); g.set({ liftOpen: false }); } };
   return (
     <div className="modal-wrap" onClick={() => g.set({ liftOpen: false })}>
-      <div className="modal glass" onClick={e => e.stopPropagation()}>
+      <div className="modal glass lift-card" onClick={e => e.stopPropagation()}>
         <h2>🛗 {t.lift.title}</h2>
+        <p className="lift-note">{t.lift.hint}</p>
         <div className="floors">
           {FLOORS.map((fl, i) => i).reverse().map(i => {
             const fl = FLOORS[i], open = i <= run.unlocked, here = i === run.floor;
@@ -26,8 +29,9 @@ export function LiftMenu() {
                 <span className="n">{open ? i + 1 : '🔒'}</span>
                 <span>
                   <b>{t.floors[i]}</b>{here ? <span className="muted small"> · {t.lift.here}</span> : null}
-                  <br /><span className="small muted">{open ? fill(t.lift.limits, { a: money(fl.min), b: money(fl.max) }) : fill(t.lift.opensAt, { x: money(fl.unlock) })}</span>
-                  <br /><span className="small">{fl.pool.map(id => GAME_ICON[id]).join(' ')}</span>
+                  <br /><span className="small muted">{open ? fill(t.lift.limits, { a: money(fl.min), b: money(fl.max) }) : fill(t.lift.unlockWays, { r: fl.rounds, x: money(fl.unlock), d: fl.day })}</span>
+                  {!open && <div className="bar"><i style={{ width: `${Math.min(1, run.rounds / fl.rounds) * 100}%` }} /></div>}
+                  <br /><span className="small">{fl.pool.slice(0, i ? 4 : 5).map(id => `${GAME_ICON[id]} ${t.games[id]}`).join(' / ')}</span>
                 </span>
               </button>
             );
@@ -53,7 +57,7 @@ export function Shark() {
       <div className="screen-card glass">
         <h2>🦈 {t.shark.title}</h2>
         <div className="shark">
-          <div className="shark-face">🦈</div>
+          <div className="shark-face"><HouseMark /></div>
           <div className="col">
             <div className="speech">«{line}»</div>
             <div className="kv"><span>{fill(t.shark.due, { n: run.day, x: money(run.quota) })}</span></div>
@@ -165,6 +169,8 @@ export function LbStatus() {
   const mark = useGame(s => s.mark);
   let text = '';
   if (lb.status.startsWith('ack:')) text = t.lb.ack[lb.status.slice(4) as keyof typeof t.lb.ack] ?? '';
+  else if (lb.status === 'local') text = t.lb.localSaved;
+  else if (lb.status === 'auth') text = t.lb.auth;
   else if (lb.status === 'sending') text = t.lb.sending;
   else if (lb.status === 'sent') text = t.lb.sent;
   else if (lb.status === 'offline') text = t.lb.offline;
@@ -182,33 +188,35 @@ export function LbStatus() {
 export function Leaders() {
   const t = useT();
   const lb = useLb();
-  const [tab, setTab] = useState<'days' | 'peak' | 'big'>('days');
+  const [tab, setTab] = useState<ScoreSort>('days');
+  const [scope, setScope] = useState<'local' | 'shared'>(() => canSend() ? 'shared' : 'local');
+  const [refreshing, setRefreshing] = useState(false);
   const myId = lb.acct ? lb.acct.nick.normalize('NFKC').replace(/\s+/g, ' ').trim().toLowerCase() : null;
   const rows = useMemo(() => {
-    const src = lb.mode === 'gh' ? lb.rows.slice() : (JSON.parse(localStorage.getItem('dt-top') || '[]') as typeof lb.rows);
-    const key = (r: (typeof src)[number]) => (tab === 'days' ? r.days * 1e15 + r.total : tab === 'peak' ? r.peak : r.big);
-    return src.sort((a, b) => key(b) - key(a)).slice(0, 100);
-  }, [lb.rows, lb.mode, tab]);
+    const src = scope === 'shared' ? lb.rows : lb.localRows;
+    return rankRows(src, tab);
+  }, [lb.rows, lb.localRows, scope, tab]);
   const close = () => useGame.getState().set({ modal: null });
   return (
     <div className="modal-wrap" onClick={close}>
       <div className="modal glass" onClick={e => e.stopPropagation()}>
         <h2>🏆 {t.lb.title}</h2>
+        <div className="lb-scope"><button className={'btn sm grow' + (scope === 'local' ? ' sel' : '')} onClick={() => setScope('local')}>{t.lb.device}</button><button className={'btn sm grow' + (scope === 'shared' ? ' sel' : '')} onClick={() => setScope('shared')}>{t.lb.world}</button><button className="btn sm" disabled={refreshing} aria-label={t.lb.refresh} onClick={async () => { setRefreshing(true); try { await load(); } finally { setRefreshing(false); } }}>↻</button></div>
         <div className="tabs">
           {(['days', 'peak', 'big'] as const).map(k => <button key={k} className={'btn sm grow' + (tab === k ? ' sel' : '')} onClick={() => setTab(k)}>{t.lb[k]}</button>)}
         </div>
         {rows.length ? (
           <ol className="lb-list">
             {rows.map((r, i) => (
-              <li key={r.id + i} className={(lb.mode === 'gh' && r.id === myId ? 'me' : '') + (r.pend ? ' pend' : '')}>
+              <li key={r.id + i} className={(scope === 'shared' && r.id === myId ? 'me' : '') + (r.pend ? ' pend' : '')}>
                 <span className="rk">{String(i + 1).padStart(2, '0')}</span>
-                <span className="nm">{r.nick}{lb.mode === 'gh' && r.id === myId ? <span className="muted small"> · {t.lb.you}</span> : null}</span>
+                <span className="nm">{r.nick}{scope === 'shared' && r.id === myId ? <span className="muted small"> · {t.lb.you}</span> : null}</span>
                 <span className="sc num">{tab === 'days' ? `${r.days} · ${money(r.total, undefined, true)}` : money(tab === 'peak' ? r.peak : r.big, undefined, true)}</span>
               </li>
             ))}
           </ol>
         ) : <p className="muted">{t.lb.empty}</p>}
-        <div className="small muted">{lb.mode === 'gh' ? (canSend() ? t.lb.shared : t.lb.sendOff) : t.lb.local}</div>
+        <div className="small muted">{scope === 'local' ? t.lb.local : lb.mode === 'loading' ? t.lb.loading : canSend() ? t.lb.shared : lb.mode === 'local' ? t.lb.offline : t.lb.sendOff}</div>
         <Account compact />
         <button className="btn" onClick={close}>{t.lb.close}</button>
       </div>

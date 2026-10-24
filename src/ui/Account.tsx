@@ -27,8 +27,8 @@ export function Account({ compact = false }: { compact?: boolean }) {
   };
   return (
     <form className="acct" onSubmit={submit} autoComplete="on">
-      <input name="nick" maxLength={20} placeholder={t.acct.nick} autoComplete="username" spellCheck={false} value={nick} onChange={e => setNick(e.target.value)} required />
-      <input name="pass" type="password" placeholder={t.acct.pass} autoComplete="current-password" value={pass} onChange={e => setPass(e.target.value)} required />
+      <input name="nick" maxLength={20} aria-label={t.acct.nick} placeholder={t.acct.nick} autoComplete="username" spellCheck={false} value={nick} onChange={e => setNick(e.target.value)} required />
+      <input name="pass" type="password" aria-label={t.acct.pass} placeholder={t.acct.pass} autoComplete="current-password" value={pass} onChange={e => setPass(e.target.value)} required />
       <button className="btn sm primary" disabled={busy} type="submit">{t.acct.login}</button>
       <span className="acct-msg">{msg || (compact ? '' : t.acct.why)}</span>
     </form>

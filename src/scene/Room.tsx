@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { type Theme, ROOM_W, ROOM_D } from './theme.ts';
-import { floorTexture, wallTexture, signTexture } from './textures.ts';
+import { floorTexture, wallTexture, signTexture, clubPosterTexture } from './textures.ts';
+import { useT } from '../i18n/index.ts';
 import { walkTo } from './world.ts';
 import { useGame } from '../state/game.ts';
 import type { ThreeEvent } from '@react-three/fiber';
@@ -92,9 +93,11 @@ function Decor({ floor, th }: { floor: number; th: Theme }) {
 }
 
 export function Room({ floor, th, name }: { floor: number; th: Theme; name: string }) {
+  const t = useT();
   const ft = useMemo(() => floorTexture(th.tile, th.floorA, th.floorB), [th]);
   const wt = useMemo(() => wallTexture(th.wallKind, th.wall), [th]);
   const sign = useMemo(() => signTexture(name, th.trim), [name, th]);
+  const poster = useMemo(() => clubPosterTexture(floor, name, t.scene.mottos[floor]), [floor, name, t]);
   const onFloor = (e: ThreeEvent<PointerEvent>) => {
     if (e.button !== 0) return;
     e.stopPropagation();
@@ -130,6 +133,17 @@ export function Room({ floor, th, name }: { floor: number; th: Theme; name: stri
         <planeGeometry args={[8, 2]} />
         <meshBasicMaterial map={sign} transparent toneMapped={false} />
       </mesh>
+      <mesh position={[8.4, 2.9, -ROOM_D + 0.09]} rotation={[0, 0, -0.04]}>
+        <planeGeometry args={[2.1, 2.6]} /><meshStandardMaterial map={poster} roughness={0.95} />
+      </mesh>
+      {/* An inlaid club seal and brass route from the lift, flush with the floor. */}
+      <mesh position={[0, 0.018, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[1.45, 1.5, 64]} /><meshBasicMaterial color={th.trim} transparent opacity={0.4} />
+      </mesh>
+      <mesh position={[0, 0.02, 0]} rotation={[-Math.PI / 2, 0, Math.PI / 4]}>
+        <planeGeometry args={[1.3, 1.3]} /><meshBasicMaterial color={th.trim} transparent opacity={0.08} />
+      </mesh>
+      {Array.from({ length: 7 }, (_, i) => <mesh key={i} position={[-8.4 + i * 0.65, 0.019, -6.9]} rotation={[-Math.PI / 2, 0, 0]}><planeGeometry args={[0.3, 0.05]} /><meshBasicMaterial color={th.trim} transparent opacity={0.6} /></mesh>)}
       <Decor floor={floor} th={th} />
     </group>
   );
