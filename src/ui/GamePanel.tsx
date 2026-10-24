@@ -6,6 +6,7 @@ import { PLINKO_FALL } from '../core/games/plinko.ts';
 import { sfx } from '../audio/sfx.ts';
 import { GAME_ICON, useTick } from './common.tsx';
 import { PANELS } from './panels/index.tsx';
+import { PlayButton } from './panels/Simple.tsx';
 
 export interface PanelProps {
   id: GameId;
@@ -35,7 +36,7 @@ export function GamePanel({ id }: { id: GameId }) {
   const sess = run.game?.id === id ? run.game : null;
   const last = run.last?.id === id ? run.last : null;
   const lastAt = useRef<{ n: number; at: number }>({ n: -1, at: 0 });
-  if (last && last.n !== lastAt.current.n) lastAt.current = { n: last.n, at: performance.now() };
+  if (last && last.n !== lastAt.current.n) lastAt.current = { n: last.n, at: performance.now() - Math.max(0, g.now() - last.t) };
   const revealed = !!last && performance.now() >= lastAt.current.at + revealOf(last);
   const [bet, setBetRaw] = useState(() => {
     const prev = bets[id];
@@ -96,6 +97,7 @@ export function GamePanel({ id }: { id: GameId }) {
         <div className="panel-foot">
           <BetBar bet={bet} setBet={setBet} min={fl.min} max={maxBet} t={t} />
           {run.cash < fl.min && <div className="bad small">{t.bet.noCash}</div>}
+          {id === 'slots' && <PlayButton p={props} label={t.g.slotSpin} onClick={() => props.start()} />}
         </div>
       )}
     </aside>

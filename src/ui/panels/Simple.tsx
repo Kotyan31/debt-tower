@@ -3,7 +3,6 @@ import { useState } from 'react';
 import type { PanelProps } from '../GamePanel.tsx';
 import { fill, mult, money } from '../../i18n/index.ts';
 import { SLOT_THREE, SLOT_TWO_CHERRY, SLOT_ONE_CHERRY } from '../../core/games/slots.ts';
-import { SLOT_ICONS } from '../../scene/textures.ts';
 import { DUCK_COLORS } from '../../scene/tables/Duck.tsx';
 import type { DuckPre } from '../../core/games/duck.ts';
 import { WHEELS } from '../../core/games/wheel.ts';
@@ -12,6 +11,7 @@ import { KENO_N, KENO_PAY } from '../../core/games/keno.ts';
 import { BAC_PAY, type BacS, type BacSide } from '../../core/games/baccarat.ts';
 import { PlayingCard } from '../common.tsx';
 import { sfx } from '../../audio/sfx.ts';
+import { SlotDisplay, SlotSymbol } from '../SlotDisplay.tsx';
 
 export function PlayButton({ p, label, onClick, disabled }: { p: PanelProps; label?: string; onClick: () => void; disabled?: boolean }) {
   return (
@@ -45,13 +45,16 @@ export function SlotsPanel(p: PanelProps) {
   const s = p.last && p.revealed ? (p.last.s as { reels: number[]; mult: number }) : null;
   return (
     <div className="col">
-      <div className="paytable">
-        {SLOT_THREE.map((m, i) => [<span key={'a' + i} className={s && s.reels.every(r => r === i) ? 'on' : ''}>{SLOT_ICONS[i]} {SLOT_ICONS[i]} {SLOT_ICONS[i]}</span>, <span key={'b' + i}>{mult(m)}</span>]).reverse()}
-        <span>🍒 🍒</span><span>{mult(SLOT_TWO_CHERRY)}</span>
-        <span>🍒</span><span>{mult(SLOT_ONE_CHERRY)}</span>
-      </div>
+      <SlotDisplay p={p} />
       <Armed p={p} item="horseshoe" />
-      <PlayButton p={p} label="🎰" onClick={() => p.start()} />
+      <details className="slot-payouts">
+        <summary>{p.t.g.slotPaytable}<span className="gold">{mult(SLOT_THREE.at(-1)!)}</span></summary>
+        <div className="paytable slot-paytable">
+          {SLOT_THREE.map((m, i) => [<span key={'a' + i} className={'slot-pay-symbols' + (s && s.reels.every(r => r === i) ? ' on' : '')} aria-label={`${p.t.g.slotSymbols[i]} ×3`}><SlotSymbol symbol={i} /><SlotSymbol symbol={i} /><SlotSymbol symbol={i} /></span>, <span key={'b' + i}>{mult(m)}</span>]).reverse()}
+          <span className="slot-pay-symbols" aria-label={`${p.t.g.slotSymbols[0]} ×2`}><SlotSymbol symbol={0} /><SlotSymbol symbol={0} /></span><span>{mult(SLOT_TWO_CHERRY)}</span>
+          <span className="slot-pay-symbols" aria-label={p.t.g.slotSymbols[0]}><SlotSymbol symbol={0} /></span><span>{mult(SLOT_ONE_CHERRY)}</span>
+        </div>
+      </details>
     </div>
   );
 }

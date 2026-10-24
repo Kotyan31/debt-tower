@@ -84,18 +84,77 @@ export function diceTexture(n: number): Texture {
 }
 
 export const SLOT_ICONS = ['🍒', '🍋', '🍇', '🔔', 'BAR', '7', '💎'];
-/** a reel strip: the seven symbols top to bottom, wrapped around a cylinder */
-export function reelTexture(): Texture {
-  return make('reel', 128, 128 * 7, (g, w) => {
-    g.fillStyle = '#fffdf6'; g.fillRect(0, 0, w, 128 * 7);
-    SLOT_ICONS.forEach((s, i) => {
-      const y = i * 128 + 64;
-      g.textAlign = 'center'; g.textBaseline = 'middle';
-      if (s === 'BAR') { g.fillStyle = '#1b1b24'; rrect(g, 14, y - 26, 100, 52, 8); g.fill(); g.fillStyle = '#ffcf3a'; g.font = `bold 34px ${FONT}`; g.fillText('BAR', 64, y + 2); }
-      else if (s === '7') { g.fillStyle = '#d42a3c'; g.font = `bold 92px ${FONT}`; g.fillText('7', 64, y + 4); }
-      else { g.font = `80px ${EMOJI}`; g.fillText(s, 64, y + 4); }
-      g.fillStyle = 'rgba(0,0,0,.08)'; g.fillRect(0, i * 128, w, 3);
+/** Draw the symbols ourselves so an unavailable emoji font cannot leave a blank reel. */
+function drawSlotSymbol(g: CanvasRenderingContext2D, symbol: number) {
+  const ellipse = (x: number, y: number, rx: number, ry: number, color: string, rotation = 0) => {
+    g.fillStyle = color; g.beginPath(); g.ellipse(x, y, rx, ry, rotation, 0, Math.PI * 2); g.fill();
+  };
+  const poly = (points: number[][], color: string) => {
+    g.fillStyle = color; g.beginPath(); points.forEach(([x, y], i) => i ? g.lineTo(x, y) : g.moveTo(x, y)); g.closePath(); g.fill();
+  };
+  if (symbol === 0) {
+    g.strokeStyle = '#386942'; g.lineWidth = 5; g.lineCap = 'round'; g.beginPath();
+    g.moveTo(42, 72); g.quadraticCurveTo(49, 35, 75, 24); g.moveTo(87, 76); g.quadraticCurveTo(79, 43, 75, 24); g.stroke();
+    ellipse(85, 29, 18, 8, '#55964c', 0.4);
+    ellipse(41, 82, 22, 24, '#a91936'); ellipse(84, 86, 23, 24, '#ca2442');
+    ellipse(36, 76, 15, 17, '#e43e52'); ellipse(78, 80, 16, 17, '#f04d5a');
+    ellipse(32, 70, 5, 7, '#ffb5a4', 0.5); ellipse(75, 73, 5, 7, '#ffc0a5', 0.5);
+  } else if (symbol === 1) {
+    ellipse(65, 70, 45, 32, '#d39b20', -0.45); ellipse(62, 64, 43, 30, '#f5ca39', -0.45);
+    ellipse(56, 56, 29, 18, '#ffe978', -0.45); ellipse(87, 28, 19, 9, '#4e8845', -0.15);
+    poly([[20, 76], [12, 85], [27, 89]], '#e5b52a'); poly([[99, 39], [113, 36], [107, 50]], '#e5b52a');
+  } else if (symbol === 2) {
+    g.strokeStyle = '#597c3c'; g.lineWidth = 6; g.beginPath(); g.moveTo(64, 37); g.quadraticCurveTo(62, 24, 74, 16); g.stroke();
+    ellipse(49, 28, 19, 9, '#63934a', 0.3);
+    [[45, 51], [76, 49], [33, 73], [63, 72], [91, 70], [49, 94], [76, 94], [63, 111]].forEach(([x, y], i) => {
+      ellipse(x, y, 15, 15, '#482b73'); ellipse(x - 2, y - 3, 12, 12, i % 2 ? '#8150b6' : '#a16bc5'); ellipse(x - 5, y - 7, 3, 3, '#d5b0ee');
     });
+  } else if (symbol === 3) {
+    ellipse(64, 23, 8, 9, '#c68a28'); ellipse(64, 101, 10, 10, '#b87524');
+    g.fillStyle = '#d79c2b'; g.beginPath(); g.moveTo(25, 91); g.quadraticCurveTo(40, 77, 39, 55);
+    g.quadraticCurveTo(39, 29, 64, 28); g.quadraticCurveTo(89, 29, 89, 55); g.quadraticCurveTo(88, 77, 103, 91); g.closePath(); g.fill();
+    g.fillStyle = '#ffda66'; g.beginPath(); g.moveTo(34, 85); g.quadraticCurveTo(47, 68, 46, 53); g.quadraticCurveTo(47, 37, 63, 36); g.lineTo(61, 85); g.closePath(); g.fill();
+    g.fillStyle = '#edb33c'; rrect(g, 20, 87, 88, 12, 6); g.fill();
+  } else if (symbol === 4) {
+    g.fillStyle = '#202638'; rrect(g, 9, 32, 110, 66, 9); g.fill();
+    g.fillStyle = '#e5bd65'; g.fillRect(16, 39, 96, 4); g.fillRect(16, 87, 96, 4);
+    g.font = '900 36px system-ui, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('BAR', 64, 66);
+  } else if (symbol === 5) {
+    g.font = '900 104px system-ui, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.fillStyle = '#851c32'; g.fillText('7', 67, 72); g.fillStyle = '#db3650'; g.fillText('7', 63, 68);
+  } else {
+    poly([[19, 42], [39, 20], [89, 20], [109, 42], [64, 111]], '#2877b5');
+    poly([[19, 42], [109, 42], [64, 111]], '#62bde9');
+    poly([[39, 20], [89, 20], [79, 42], [49, 42]], '#a8eaff');
+    poly([[19, 42], [39, 20], [49, 42]], '#e0f7ff');
+    poly([[89, 20], [109, 42], [79, 42]], '#6fc5ec');
+    poly([[49, 42], [79, 42], [64, 111]], '#c2f2ff');
+    poly([[79, 42], [109, 42], [64, 111]], '#3596cf');
+  }
+}
+
+/** Seven complete symbol cells, shared by the 3D reels and the panel's sprite sheet. */
+export function reelTexture(): Texture {
+  return make('reel-v2', 192, 192 * SLOT_ICONS.length, (g, w, h) => {
+    g.fillStyle = '#fffdf6'; g.fillRect(0, 0, w, h);
+    SLOT_ICONS.forEach((_, i) => {
+      g.save(); g.translate(0, i * w); g.scale(w / 128, w / 128); drawSlotSymbol(g, i); g.restore();
+    });
+  });
+}
+
+let reelImage: string | null = null;
+export function reelImageUrl() {
+  return reelImage ??= (reelTexture().image as HTMLCanvasElement).toDataURL('image/png');
+}
+
+export function slotMarqueeTexture(): Texture {
+  return make('slots-marquee', 512, 128, (g, w, h) => {
+    g.fillStyle = '#202234'; g.fillRect(0, 0, w, h);
+    g.strokeStyle = '#edc879'; g.lineWidth = 5; rrect(g, 5, 5, w - 10, h - 10, 14); g.stroke();
+    g.font = '900 100px system-ui, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.fillStyle = '#f5d792'; g.fillText('777', w / 2, h / 2 + 5);
+    for (const x of [36, w - 36]) for (const y of [30, 64, 98]) { g.beginPath(); g.arc(x, y, 4, 0, Math.PI * 2); g.fill(); }
   });
 }
 

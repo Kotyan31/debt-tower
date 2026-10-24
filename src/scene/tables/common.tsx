@@ -9,7 +9,7 @@ export function useRound(id: GameId) {
   const sess = useGame(s => (s.run?.game?.id === id ? s.run.game : null));
   const seen = useRef<{ n: number; at: number }>({ n: -1, at: 0 });
   const sseen = useRef<{ key: unknown; at: number }>({ key: null, at: 0 });
-  if (last && last.n !== seen.current.n) seen.current = { n: last.n, at: performance.now() };
+  if (last && last.n !== seen.current.n) seen.current = { n: last.n, at: performance.now() - Math.max(0, useGame.getState().now() - last.t) };
   const skey = sess ? JSON.stringify(sess.s) : null;
   if (skey !== sseen.current.key) sseen.current = { key: skey, at: performance.now() };
   return { last: last as Result | null, lastAt: seen.current.at, sess: sess as Session | null, sessAt: sseen.current.at };

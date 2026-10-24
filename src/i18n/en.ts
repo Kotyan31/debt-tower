@@ -98,6 +98,9 @@ export const en: Dict = {
     pays: 'pays ×{x}',
   },
   g: {
+    slotSymbols: ['Cherry', 'Lemon', 'Grapes', 'Bell', 'BAR', 'Seven', 'Diamond'],
+    slotSpin: 'Spin', slotReady: 'Three reels. One payline.', slotSpinning: 'Reels are spinning…',
+    slotRespin: 'Horseshoe: spinning again', slotReturned: 'Returned {x}', slotPaytable: 'Paytable',
     heads: 'Heads', tails: 'Tails',
     duckOdds: '×{x}',
     duckNames: ['Quacky', 'Donut', 'Yarl', 'Bagel', 'Turbo'],

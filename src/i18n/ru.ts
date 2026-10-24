@@ -96,6 +96,9 @@ export const ru = {
     pays: 'платит ×{x}',
   },
   g: {
+    slotSymbols: ['Вишня', 'Лимон', 'Виноград', 'Колокол', 'BAR', 'Семёрка', 'Бриллиант'],
+    slotSpin: 'Крутить', slotReady: 'Три барабана. Одна линия.', slotSpinning: 'Барабаны вращаются…',
+    slotRespin: 'Подкова: повторное вращение', slotReturned: 'Выплата {x}', slotPaytable: 'Таблица выплат',
     heads: 'Орёл', tails: 'Решка',
     duckOdds: '×{x}',
     duckNames: ['Кряк', 'Пончик', 'Ярл', 'Бублик', 'Турбо'],

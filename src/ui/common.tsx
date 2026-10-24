@@ -2,6 +2,18 @@ import { useEffect, useState } from 'react';
 import { type Card, rank, suit, RANKS, SUITS, isRed } from '../core/cards.ts';
 import type { GameId, ItemId } from '../core/index.ts';
 
+export function useReducedMotion() {
+  const [reduced, setReduced] = useState(() => typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches);
+  useEffect(() => {
+    if (typeof matchMedia !== 'function') return;
+    const query = matchMedia('(prefers-reduced-motion: reduce)');
+    const update = () => setReduced(query.matches);
+    query.addEventListener('change', update);
+    return () => query.removeEventListener('change', update);
+  }, []);
+  return reduced;
+}
+
 export const ITEM_ICON: Record<ItemId, string> = {
   lucky: '🪙', energy: '🥤', insurance: '📄', lens: '🔍', detector: '📡', cloak: '🧥', boots: '🥾',
   dope: '🧪', dice: '🎲', crystal: '🔮', horseshoe: '🧲', rabbit: '🐇', sheet: '📜',
