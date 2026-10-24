@@ -1,0 +1,61 @@
+name: scores
+
+# The game posts each run as a signed comment on the locked issue "debt-tower-scores".
+# This job replays every run with the game's own rules, writes data/scores.json and deletes the handled comments.
+# Run it once by hand after adding the LB_PAT secret: it creates the issue and data/lb.json.
+on:
+  issue_comment:
+    types: [created]
+  # a new site version: learn its code fingerprint at once, so its first results are not turned away as "old"
+  workflow_run:
+    workflows: [pages]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+
+# runs queue up; each run handles every comment waiting on the issue, so a skipped run loses nothing
+concurrency:
+  group: scores
+  cancel-in-progress: false
+
+jobs:
+  scores:
+    # any comment wakes it: the script itself only reads the issue named in data/lb.json
+    if: github.event_name != 'issue_comment' || !github.event.issue.pull_request
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Check new results
+        env:
+          GH_TOKEN: ${{ github.token }}
+          LB_PAT: ${{ secrets.LB_PAT }}
+          REPO: ${{ github.repository }}
+          PAGES_URL: ${{ vars.PAGES_URL }}
+        run: node scripts/lb.mjs process
+
+      - name: Commit
+        run: |
+          # table updates are signed as the repository owner, so no bot account shows up among the contributors
+          git config user.name "Kotyan31"
+          git config user.email "150701717+Kotyan31@users.noreply.github.com"
+          git add data/scores.json data/lb.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "scores: update"
+          for i in 1 2 3; do
+            if git pull --rebase && git push; then exit 0; fi
+            sleep 5
+          done
+          exit 1
+
+      - name: Remove handled comments
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: node scripts/lb.mjs cleanup
