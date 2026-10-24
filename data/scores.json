@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-24T15:38:58Z",
+ "updated": "2026-10-24T18:10:48Z",
  "scores": [
   {
    "id": "jokl1985",
@@ -13,11 +13,11 @@
   {
    "id": "снюсоед дэп228",
    "nick": "Снюсоед Дэп228",
-   "days": 36,
-   "total": 14242585,
+   "days": 39,
+   "total": 17445801,
    "peak": 12310810,
    "big": 3054000,
-   "at": "2026-10-24T14:04:37Z"
+   "at": "2026-10-24T18:10:48Z"
   },
   {
    "id": "morgenshtern",
@@ -86,7 +86,8 @@
   "d2e29276d418991ede4e5d8e": "low",
   "bff84aa53e372c4d61862284": "low",
   "4cc050ec050db0bacb88f581": "ok",
-  "b4007a5bce6b9ba9cbccb3f3": "low"
+  "b4007a5bce6b9ba9cbccb3f3": "low",
+  "349fccd4ed14d859cc6efc5b": "ok"
  },
  "code": [
   "b01480df77cda4c5a309271c1ba37f4f",
@@ -364,7 +365,8 @@
   "b8571473fe84f4103e0aa25a": {
    "gk": "BEpim9c5zJdvJeOQaXdVnnrR0SIFUoFkMD32dHo8FCp6iVWQVhulan8Z0G8llA9c+nH2dQmwCzBG4LINcVukt18=",
    "sh": "e39c36512601811109a82b8aa81a43a7b05b514476d84f06cc706bf6c4f7e211",
-   "at": 1792863760
+   "at": 1792863760,
+   "used": true
   }
  }
 }
