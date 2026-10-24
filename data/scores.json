@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-24T13:29:21Z",
+ "updated": "2026-10-24T13:37:25Z",
  "scores": [
   {
    "id": "jokl1985",
@@ -23,10 +23,10 @@
    "id": "снюсоед дэп228",
    "nick": "Снюсоед Дэп228",
    "days": 1,
-   "total": 300,
-   "peak": 800,
-   "big": 0,
-   "at": "2026-10-24T13:28:42Z"
+   "total": 327,
+   "peak": 2416,
+   "big": 770,
+   "at": "2026-10-24T13:37:25Z"
   }
  ],
  "players": {
@@ -53,7 +53,8 @@
   "914b3acdcb40cc25470e97d6": "ok",
   "69c21f7df216f00cf0271118": "low",
   "f9a1ea1cd34b87ecc88f7ca8": "low",
-  "de0fccdb829be4d4cce48bdc": "low"
+  "de0fccdb829be4d4cce48bdc": "low",
+  "8a58fc6b4535c8f4e6af065c": "ok"
  },
  "code": [
   "b01480df77cda4c5a309271c1ba37f4f",
@@ -157,7 +158,8 @@
   "ea0da2544d35b15ac02d299c": {
    "gk": "BCsTJ/w4ASvi2UdskACciZOri7x5XsKLcdqXdYxDNOvbAyYBTRIy7GXE4jspFyxLz5upF8ItzhGYB4/yVCHL0f0=",
    "sh": "9c062ece8e8ee77c62ca01fa37271d5c3f10dfdfeac20428bed7371ca9ed016d",
-   "at": 1792848552
+   "at": 1792848552,
+   "used": true
   },
   "f9ac98d94065b40f9f9f7a05": {
    "gk": "BFwrUW8pnI/8hmwWa3Bq5yjVVci5wPawy6Y7TgFbcASrQjyk+d9FSAKvvXmqp2epy8N81pckmJqPAJUKoace1bk=",
@@ -183,6 +185,11 @@
    "gk": "BHF4Kf2TgmNTUfNLwYlLOfnauF/OeTeZ94rbmojYrXu+wwoToS54T2KjZhGCThSHoB1X+tCIG+OxAS9aoayVFio=",
    "sh": "f2e5676a0aca888a701ae50cc8ada86fc902065060c82c9b84accbda584a77c0",
    "at": 1792848828
+  },
+  "c1b55596aacc9229b03749b5": {
+   "gk": "BKEq7qow64eZRxHfFiJM/eVlLTv6JxxPlHLWnV9TnqR6WBr2UGveiNXxOz94C2XBQ7yup8VpnSeCBLvQ53KIg4w=",
+   "sh": "e88ce18fba0a40ffbb628bbbbbad037384cfb5eef84d50cfbd42d4ce0841fe8b",
+   "at": 1792849036
   }
  }
 }
