@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
 import { type Theme, ROOM_W, ROOM_D } from './theme.ts';
 import { floorTexture, wallTexture, signTexture } from './textures.ts';
-import { world } from './world.ts';
-import { Vector3 } from 'three';
+import { walkTo } from './world.ts';
+import { useGame } from '../state/game.ts';
 import type { ThreeEvent } from '@react-three/fiber';
 
 const H = 6;
@@ -98,8 +98,9 @@ export function Room({ floor, th, name }: { floor: number; th: Theme; name: stri
   const onFloor = (e: ThreeEvent<PointerEvent>) => {
     if (e.button !== 0) return;
     e.stopPropagation();
-    world.target = new Vector3(e.point.x, 0, e.point.z);
-    world.goal = null;
+    const g = useGame.getState();
+    if (g.screen !== 'play' || g.table || g.modal || g.liftOpen || g.run?.phase !== 'day') return;
+    walkTo(e.point.x, e.point.z, null, g.run.tables.length);
   };
   const metal = th.tile === 'marble';
   return (

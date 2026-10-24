@@ -31,13 +31,16 @@ export function Player({ color }: { color: string }) {
         dir.addScaledVector(ISO_UP, up).addScaledVector(ISO_RIGHT, right);
         if (dir.lengthSq() > 1) dir.normalize();
         world.target = null;
+        world.path = [];
         world.goal = null;
       } else if (world.target) {
         tmp.copy(world.target).sub(world.pos);
         tmp.y = 0;
         const d = tmp.length();
         if (d < 0.2) {
-          world.target = null;
+          world.pos.copy(world.target);
+          world.target = world.path.shift() ?? null;
+          if (world.target) return;
           const goal = world.goal;
           world.goal = null;
           if (goal?.k === 'table') { g.set({ table: goal.id }); sfx('chip'); }

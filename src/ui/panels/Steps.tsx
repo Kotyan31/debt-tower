@@ -137,7 +137,7 @@ export function DragonPanel(p: PanelProps) {
   const [diff, setDiff] = useState(1);
   const s = (p.sess?.s ?? (p.last && p.revealed ? p.last.s : null)) as DragonS | null;
   const live = !!p.sess;
-  const d = s ? s.diff : diff;
+  const d = live && s ? s.diff : diff;
   const tiles = DRAGON_DIFF[d][0];
   return (
     <div className="col">
@@ -148,7 +148,7 @@ export function DragonPanel(p: PanelProps) {
             <span className="small muted num" style={{ alignSelf: 'center' }}>{mult(dragonMult(d, lv + 1))}</span>
             {Array.from({ length: tiles }, (_, c) => {
               const picked = s && s.picks[lv] === c && lv < s.picks.length;
-              const bad = s?.bad[lv][c];
+              const bad = s?.bad[lv]?.[c];
               const show = picked || (s && !live && bad);
               return (
                 <button key={c} className={'tile' + (show ? (bad ? ' boom' : ' open') : '')}

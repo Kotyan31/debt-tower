@@ -192,7 +192,7 @@ export function apply(r: Run, a: Act): void {
 
   switch (op) {
     case 'x': {
-      if (r.phase === 'day') settle(r, t, rng);
+      if (r.phase === 'day') settle(r, Math.min(t, deadline(r)), rng);
       return keep();
     }
     case 'e': {
@@ -310,7 +310,7 @@ export function apply(r: Run, a: Act): void {
     const bet = int(a[3], 1, 1e12, 'bet');
     const o = (a[4] ?? {}) as any;
     const stake = g.stake ? g.stake(bet, o) : bet;
-    if (stake < fl.min || stake > fl.max) fail('limits');
+    if (!Number.isSafeInteger(stake) || stake < fl.min || stake > fl.max) fail('limits');
     if (stake > r.cash) fail('cash');
     r.cash -= stake;
     r.wagered += stake;

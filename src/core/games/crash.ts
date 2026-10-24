@@ -21,7 +21,7 @@ export const crash: GameDef<CrashS, { auto?: number }> = {
   id: 'crash',
   start(bet, o, rng, ctx) {
     const auto = o?.auto == null ? 0 : o.auto;
-    if (typeof auto !== 'number' || (auto !== 0 && (auto < 1.01 || auto > CRASH_CAP))) fail('auto');
+    if (typeof auto !== 'number' || !Number.isFinite(auto) || (auto !== 0 && (auto < 1.01 || auto > CRASH_CAP))) fail('auto');
     const u = rng.next();
     const crash = Math.max(1, Math.min(CRASH_CAP, floor2(CRASH_EDGE / (1 - u))));
     return { s: { stake: bet, t0: ctx.t, crash, auto: floor2(auto) }, anim: 0 };

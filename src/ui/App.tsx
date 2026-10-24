@@ -9,6 +9,8 @@ import { LiftMenu, Shark, Shop, Over, Leaders } from './Screens.tsx';
 import { Account } from './Account.tsx';
 import { world } from '../scene/world.ts';
 import { sfx, unlockAudio } from '../audio/sfx.ts';
+import { FLOORS } from '../core/index.ts';
+import { GAME_ICON } from './common.tsx';
 
 function Menu() {
   const t = useT();
@@ -16,9 +18,12 @@ function Menu() {
   const has = g.hasSave();
   return (
     <div className="menu">
-      <div className="menu-card glass">
-        <div className="logo">{t.title}<small>CASINO · TOWER</small></div>
+      <div className="menu-shell">
+      <div className="menu-card">
+        <div className="brand-mark" aria-hidden="true">♠ <span>Debt Tower</span> ♦</div>
+        <h1 className="logo">{t.title}</h1>
         <p className="tagline">{t.tagline}</p>
+        <div className="run-brief"><span><b>$500</b>{t.menu.startCash}</span><span><b>5:00</b>{t.menu.dayTime}</span><span><b>17</b>{t.menu.gamesCount}</span></div>
         <div className="menu-btns">
           {has && <button className="btn primary big" onClick={() => { unlockAudio(); g.resume(); sfx('lift'); }}>▶ {t.menu.continue}</button>}
           <button className={'btn big' + (has ? '' : ' primary')} onClick={() => { unlockAudio(); if (has) g.set({ modal: 'confirmNew' }); else { g.newGame(); sfx('lift'); } }}>🎲 {t.menu.newRun}</button>
@@ -29,7 +34,20 @@ function Menu() {
           </div>
         </div>
         <Account />
+        <p className="virtual-note">{t.menu.virtual}</p>
         <div className="menu-foot"><span>{t.credits}</span><LangSwitch /></div>
+      </div>
+      <div className="tower-preview" aria-label={t.menu.tower}>
+        <div className="tower-crown" aria-hidden="true">♠</div>
+        <div className="tower-roof" />
+        {[3, 2, 1, 0].map(i => <div className={`tower-storey storey-${i}`} key={i}>
+          <span className="storey-number">{i + 1}</span>
+          <div><h2>{t.floors[i]}</h2><span className="storey-games" aria-hidden="true">{FLOORS[i].pool.slice(0, 4).map(id => GAME_ICON[id]).join('　')}</span></div>
+          <span className="storey-unlock">{i ? '$' + (FLOORS[i].unlock / 1000) + 'k' : t.menu.entrance}</span>
+        </div>)}
+        <div className="tower-base">{t.menu.tower}</div>
+        <p className="tower-caption">{t.menu.climb}</p>
+      </div>
       </div>
     </div>
   );
@@ -122,13 +140,22 @@ export function App() {
   const [, force] = useState(0);
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
-      if ((e.target as HTMLElement)?.tagName === 'INPUT') return;
+      if (e.code === 'Escape') {
+        const s = useGame.getState();
+        if (s.modal) { e.stopImmediatePropagation(); s.set({ modal: null }); }
+        else if (s.liftOpen) s.set({ liftOpen: false });
+        else if (!s.table && s.screen === 'play') s.set({ modal: 'settings' });
+        return;
+      }
+      const el = e.target as HTMLElement;
+      if (el?.closest('input, textarea, select, [contenteditable="true"]')) return;
+      if (el?.closest('button') && (e.code === 'Enter' || e.code === 'Space')) return;
+      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(e.code)) e.preventDefault();
       world.keys.add(e.code);
-      if (e.code === 'KeyE' || (e.code === 'Enter' && !useGame.getState().table)) openNear();
-      if (e.code === 'Escape') { const s = useGame.getState(); if (s.liftOpen) s.set({ liftOpen: false }); else if (s.modal) s.set({ modal: null }); }
+      if (!e.repeat && (e.code === 'KeyE' || (e.code === 'Enter' && !useGame.getState().table))) openNear();
     };
     const up = (e: KeyboardEvent) => world.keys.delete(e.code);
-    const blur = () => world.keys.clear();
+    const blur = () => { world.keys.clear(); world.stick = { x: 0, y: 0 }; };
     window.addEventListener('keydown', down);
     window.addEventListener('keyup', up);
     window.addEventListener('blur', blur);

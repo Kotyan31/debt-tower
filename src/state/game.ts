@@ -5,6 +5,7 @@ import { store, hex } from '../net/storage.ts';
 import { secureBytes } from '../net/guard.ts';
 import { type RunMark, markStart, submitRun } from '../net/leaderboard.ts';
 import { sfx } from '../audio/sfx.ts';
+import { world, SPAWN } from '../scene/world.ts';
 
 const SAVE = 'dt-run';
 
@@ -52,6 +53,15 @@ function readSave(): Saved | null {
 /** how long a round's result keeps rolling on screen */
 const revealMs = (id: GameId, anim: number) => (id === 'plinko' ? PLINKO_FALL : anim);
 
+function resetWalker() {
+  world.pos.set(SPAWN[0], 0, SPAWN[1]);
+  world.target = null;
+  world.goal = null;
+  world.path = [];
+  world.keys.clear();
+  world.stick = { x: 0, y: 0 };
+}
+
 export const useGame = create<GameState>((set, get) => ({
   screen: 'menu',
   run: null,
@@ -74,7 +84,8 @@ export const useGame = create<GameState>((set, get) => ({
 
   act(op, ...args) {
     const s = get();
-    if (!s.run) return false;
+    if (!s.run || s.screen !== 'play') return false;
+    if (op === 's' && s.holds.some(h => h.until > performance.now())) return false;
     const a: Act = [s.now(), op, ...args];
     const before = s.run;
     const next = tryApply(before, a);
@@ -84,19 +95,21 @@ export const useGame = create<GameState>((set, get) => ({
       holds.push({ v: next.last.pay, until: performance.now() + revealMs(next.last.id, next.last.anim) });
     }
     set({ run: next, log: [...s.log, a], holds });
-    if (next.note && next.note !== before.note && next.note.k === 'challenge') sfx('ticket');
+    if (next.note?.k === 'challenge' && next.note.t !== before.note?.t) sfx('ticket');
+    if (next.floor !== before.floor || (next.phase === 'day' && before.phase !== 'day')) resetWalker();
     if (next.phase === 'over' && !get().submitted) {
       set({ submitted: true, table: null, liftOpen: false });
       submitRun(get().seed, get().log, summary(next), get().mark);
     }
-    if (next.phase !== 'day' && (get().table || get().liftOpen)) set({ table: null, liftOpen: false });
+    if (next.phase !== before.phase) set({ table: null, liftOpen: false, modal: null, holds: [] });
     persist(get());
     return true;
   },
 
   newGame() {
     const seed = hex(secureBytes(16));
-    set({ screen: 'play', run: newRun(seed), seed, epoch: Date.now(), log: [], mark: null, submitted: false, table: null, liftOpen: false, holds: [], modal: null, toast: null });
+    resetWalker();
+    set({ screen: 'play', run: newRun(seed), seed, epoch: Date.now(), log: [], mark: null, submitted: false, table: null, liftOpen: false, near: null, holds: [], modal: null, toast: null });
     persist(get());
     markStart(seed).then(mark => { if (get().seed === seed) { set({ mark }); persist(get()); } });
   },
@@ -108,10 +121,12 @@ export const useGame = create<GameState>((set, get) => ({
 
   resume() {
     const sv = readSave();
-    if (!sv) return false;
+    if (!sv || sv.submitted) return false;
     try {
       const run = replay(sv.seed, sv.log);
-      set({ screen: 'play', run, seed: sv.seed, epoch: sv.epoch, log: sv.log, mark: sv.mark, submitted: sv.submitted, table: null, liftOpen: false, holds: [], modal: null });
+      if (run.phase === 'over' || !Number.isFinite(sv.epoch)) throw new Error('save');
+      resetWalker();
+      set({ screen: 'play', run, seed: sv.seed, epoch: sv.epoch, log: sv.log, mark: sv.mark, submitted: sv.submitted, table: run.game?.id ?? null, liftOpen: false, near: null, holds: [], modal: null });
       return true;
     } catch {
       store.set(SAVE, null);
@@ -119,7 +134,7 @@ export const useGame = create<GameState>((set, get) => ({
     }
   },
 
-  toMenu() { set({ screen: 'menu', table: null, liftOpen: false, modal: null }); },
+  toMenu() { resetWalker(); set({ screen: 'menu', table: null, liftOpen: false, near: null, modal: null }); },
 
   set(p) { set(p); },
 
@@ -127,13 +142,13 @@ export const useGame = create<GameState>((set, get) => ({
     const s = get();
     if (!s.run) return 0;
     const t = performance.now();
-    return s.run.cash - s.holds.reduce((a, h) => a + (h.until > t ? h.v : 0), 0);
+    return Math.max(0, s.run.cash - s.holds.reduce((a, h) => a + (h.until > t ? h.v : 0), 0));
   },
 }));
 
 /** the bell, and the crash rocket ending on its own */
 export function startClock() {
-  setInterval(() => {
+  return setInterval(() => {
     const g = useGame.getState(), r = g.run;
     if (!r || g.screen !== 'play' || r.phase !== 'day') return;
     const now = g.now();

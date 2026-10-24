@@ -1,6 +1,7 @@
 import { type GameDef, fail, int } from '../types.ts';
 
-/** European single-zero roulette. A spin carries up to 20 bets: [kind, value, amount]. */
+/** European single-zero roulette. One bet per board position: [kind, value, amount]. */
+export const ROULETTE_MAX_BETS = 49;
 export type RouletteBet = [kind: 'n' | 'red' | 'black' | 'odd' | 'even' | 'low' | 'high' | 'dz' | 'col', value: number, amount: number];
 
 export const RED = new Set([1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36]);
@@ -25,7 +26,7 @@ export function betWins(b: RouletteBet, r: number): number {
 }
 
 function check(bet: number, bets: RouletteBet[]): RouletteBet[] {
-  if (!Array.isArray(bets) || !bets.length || bets.length > 20) fail('bets');
+  if (!Array.isArray(bets) || !bets.length || bets.length > ROULETTE_MAX_BETS) fail('bets');
   let sum = 0;
   for (const b of bets) {
     if (!Array.isArray(b) || b.length !== 3) fail('bet');

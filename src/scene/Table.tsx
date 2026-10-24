@@ -1,10 +1,9 @@
 import { useMemo, type ReactElement } from 'react';
-import { Vector3 } from 'three';
 import type { ThreeEvent } from '@react-three/fiber';
 import type { GameId } from '../core/index.ts';
 import type { Theme } from './theme.ts';
 import { signTexture } from './textures.ts';
-import { world } from './world.ts';
+import { visitTable } from './world.ts';
 import { useGame } from '../state/game.ts';
 import { SlotsProp } from './tables/Slots.tsx';
 import { CoinProp } from './tables/Coin.tsx';
@@ -36,13 +35,8 @@ export function Table({ id, pos, th, label }: { id: GameId; pos: [number, number
     if (e.button !== 0) return;
     e.stopPropagation();
     const g = useGame.getState();
-    if (g.table || g.run?.phase !== 'day') return;
-    // walk to the side of the table that faces the player, then sit down
-    const from = new Vector3(world.pos.x - pos[0], 0, world.pos.z - pos[1]);
-    if (from.lengthSq() < 0.01) from.set(1, 0, 1);
-    from.normalize().multiplyScalar(2.7);
-    world.target = new Vector3(pos[0] + from.x, 0, pos[1] + from.z);
-    world.goal = { k: 'table', id };
+    if (g.screen !== 'play' || g.table || g.modal || g.liftOpen || g.run?.phase !== 'day') return;
+    visitTable(g.run.tables, id);
   };
   return (
     <group position={[pos[0], 0, pos[1]]} onPointerDown={onClick}>

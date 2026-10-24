@@ -41,8 +41,10 @@ export function GamePanel({ id }: { id: GameId }) {
     const prev = bets[id];
     return Math.max(fl.min, Math.min(fl.max, prev ?? Math.max(fl.min, Math.floor(run.cash / 20 / fl.min) * fl.min)));
   });
-  const setBet = (n: number) => { const v = Math.max(fl.min, Math.min(fl.max, Math.floor(n) || fl.min)); bets[id] = v; setBetRaw(v); };
-  const busy = g.now() < run.busy;
+  const maxBet = Math.min(fl.max, Math.max(fl.min, run.cash));
+  const setBet = (n: number) => { const v = Math.max(fl.min, Math.min(maxBet, Math.floor(n) || fl.min)); bets[id] = v; setBetRaw(v); };
+  useEffect(() => { if (!sess && bet > maxBet) setBet(maxBet); }, [bet, maxBet, !!sess]);
+  const busy = g.now() < run.busy || g.holds.some(h => h.until > performance.now());
   const others = run.game && run.game.id !== id;
 
   // win and loss sounds land when the reveal does
@@ -56,7 +58,7 @@ export function GamePanel({ id }: { id: GameId }) {
 
   const close = () => { if (!sess) { useGame.getState().set({ table: null }); sfx('click'); } };
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') close(); };
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape' && !useGame.getState().modal) close(); };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   });
@@ -78,8 +80,10 @@ export function GamePanel({ id }: { id: GameId }) {
         <h2>{t.games[id]}</h2>
         <button className="x" onClick={close} disabled={!!sess} title={t.bet.close}>✕</button>
       </div>
+      <div className="table-meta"><span>{t.hud.floor} {run.floor + 1} · {t.floors[run.floor]}</span><b className="gold num">{money(g.shownCash())}</b></div>
       <div className="panel-body">
         <p className="rules">{t.rules[id]}</p>
+        {!sess && busy && <div className="small muted" role="status">{t.bet.revealing}</div>}
         {others ? <p className="bad">{t.bet.busy}</p> : <Panel {...props} />}
         {showResult && (
           <div className={'result ' + (net > 0 ? 'win' : net < 0 ? 'lose' : 'push')}>
@@ -90,7 +94,7 @@ export function GamePanel({ id }: { id: GameId }) {
       </div>
       {needsBet && (
         <div className="panel-foot">
-          <BetBar bet={bet} setBet={setBet} min={fl.min} max={Math.min(fl.max, Math.max(fl.min, run.cash))} t={t} />
+          <BetBar bet={bet} setBet={setBet} min={fl.min} max={maxBet} t={t} />
           {run.cash < fl.min && <div className="bad small">{t.bet.noCash}</div>}
         </div>
       )}
@@ -108,7 +112,7 @@ export function BetBar({ bet, setBet, min, max, t }: { bet: number; setBet(n: nu
         <button className="btn sm" onClick={() => { setBet(bet / 2); sfx('chip'); }}>{t.bet.half}</button>
         <input className="field num" inputMode="numeric" value={text} aria-label={t.bet.bet}
           onChange={e => setText(e.target.value.replace(/[^0-9]/g, ''))}
-          onBlur={() => setBet(Math.min(max, +text || min))}
+          onBlur={() => { const v = Math.max(min, Math.min(max, Math.floor(+text) || min)); setText(String(v)); setBet(v); }}
           onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }} />
         <button className="btn sm" onClick={() => { setBet(Math.min(max, bet * 2)); sfx('chip'); }}>{t.bet.double}</button>
         <button className="btn sm" onClick={() => { setBet(max); sfx('chip'); }}>{t.bet.max}</button>

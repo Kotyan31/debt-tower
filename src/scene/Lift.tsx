@@ -1,7 +1,7 @@
 import { useMemo, useRef } from 'react';
 import { useFrame, type ThreeEvent } from '@react-three/fiber';
-import { Vector3, type Mesh } from 'three';
-import { LIFT_POS, world } from './world.ts';
+import type { Mesh } from 'three';
+import { LIFT_POS, walkTo } from './world.ts';
 import { ROOM_D } from './theme.ts';
 import type { Theme } from './theme.ts';
 import { signTexture } from './textures.ts';
@@ -22,9 +22,9 @@ export function Lift({ th, floor, label }: { th: Theme; floor: number; label: st
   const onClick = (e: ThreeEvent<PointerEvent>) => {
     if (e.button !== 0) return;
     e.stopPropagation();
-    if (useGame.getState().table) return;
-    world.target = new Vector3(LIFT_POS[0], 0, LIFT_POS[1] + 1.4);
-    world.goal = { k: 'lift' };
+    const g = useGame.getState();
+    if (g.screen !== 'play' || g.table || g.modal || g.liftOpen || g.run?.phase !== 'day') return;
+    walkTo(LIFT_POS[0], LIFT_POS[1] + 1.4, { k: 'lift' }, g.run.tables.length);
   };
   return (
     <group position={[LIFT_POS[0], 0, -ROOM_D + 0.02]} onPointerDown={onClick}>

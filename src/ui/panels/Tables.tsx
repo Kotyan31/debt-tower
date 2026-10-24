@@ -68,9 +68,9 @@ export function PokerPanel(p: PanelProps) {
 }
 
 /** chips placed on a board: one chip = the bet in the bet bar */
-function useChips<K extends string | number>() {
+function useChips<K extends string | number>(max: number) {
   const [chips, setChips] = useState<Map<K, number>>(new Map());
-  const add = (k: K, amt: number) => { setChips(m => { const n = new Map(m); n.set(k, (n.get(k) || 0) + amt); return n; }); sfx('chip'); };
+  const add = (k: K, amt: number) => { setChips(m => { if ([...m.values()].reduce((a, b) => a + b, 0) + amt > max) return m; const n = new Map(m); n.set(k, (n.get(k) || 0) + amt); return n; }); sfx('chip'); };
   const total = [...chips.values()].reduce((a, b) => a + b, 0);
   return { chips, add, clear: () => setChips(new Map()), total };
 }
@@ -90,7 +90,7 @@ function ChipBar({ p, total, onClear, onGo, label, chip, setChip }: { p: PanelPr
 export function RoulettePanel(p: PanelProps) {
   const fl = FLOORS[p.run.floor];
   const [chip, setChip] = useState(fl.min);
-  const { chips, add, clear, total } = useChips<string>();
+  const { chips, add, clear, total } = useChips<string>(Math.min(fl.max, p.run.cash));
   const res = p.last && p.revealed ? (p.last.s as { r: number; bets: RouletteBet[] }) : null;
   const cell = (key: string, label: string, cls: string, span?: number) => (
     <button key={key} className={`rcell ${cls}${res && betWins([key.split(':')[0] as RouletteBet[0], +key.split(':')[1], 1], res.r) && key.startsWith('n:') ? ' win' : ''}`}
@@ -123,7 +123,7 @@ const MW_COLOR: Record<number, string> = { 1: '#e8e0c8', 3: '#3fb6ff', 5: '#7ee0
 export function MoneyWheelPanel(p: PanelProps) {
   const fl = FLOORS[p.run.floor];
   const [chip, setChip] = useState(fl.min);
-  const { chips, add, clear, total } = useChips<number>();
+  const { chips, add, clear, total } = useChips<number>(Math.min(fl.max, p.run.cash));
   const res = p.last && p.revealed ? (p.last.s as { k: number }) : null;
   const go = () => { const bets: MwBet[] = [...chips.entries()].map(([k, a]) => [k, a]); p.start({ bets }, total); };
   return (

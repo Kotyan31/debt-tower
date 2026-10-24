@@ -4,6 +4,9 @@ export const en: Dict = {
   title: 'Debt Tower',
   tagline: 'You owe the loan shark $50,000. You have $500 and five minutes a day.',
   menu: {
+    startCash: 'starting cash', dayTime: 'each day', gamesCount: 'games in the tower',
+    virtual: 'All money is virtual. Risk is part of the game.',
+    tower: 'Four floors to freedom', entrance: 'Entrance', climb: 'Win. Climb. Pay your debt.',
     newRun: 'New run',
     continue: 'Continue',
     leaders: 'Leaderboard',
@@ -31,6 +34,8 @@ export const en: Dict = {
     armed: 'armed',
     menu: 'Menu',
     pause: 'The casino clock never stops.',
+    ready: 'Quota covered', shortfall: '{x} still needed', tables: 'Tables on this floor',
+    nextFloor: 'Next floor: {x}', topFloor: 'You reached the top',
   },
   challenge: {
     streak: 'Win {n} in a row',
@@ -89,6 +94,7 @@ export const en: Dict = {
     saved: 'insurance returned {x}',
     close: 'Step away',
     busy: 'Finish the round first',
+    revealing: 'Revealing the result…',
     pays: 'pays ×{x}',
   },
   g: {
