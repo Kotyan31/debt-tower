@@ -1,8 +1,26 @@
 {
- "updated": null,
- "scores": [],
- "players": {},
- "acks": {},
+ "updated": "2026-10-24T13:14:41Z",
+ "scores": [
+  {
+   "id": "kotyan31",
+   "nick": "Kotyan31",
+   "days": 1,
+   "total": 2820,
+   "peak": 3961,
+   "big": 1645,
+   "at": "2026-10-24T13:14:41Z"
+  }
+ ],
+ "players": {
+  "kotyan31": {
+   "nick": "Kotyan31",
+   "key": "BBWbuO4wYxl+/rKDLh8gmT9QY0euzUfWgxiWvN6g+PvExUYFawAU5vDzr+7BuH7ZwMVOTgpvB4Wxh+9PqEVecV4=",
+   "since": "2026-10-24T13:14:41Z"
+  }
+ },
+ "acks": {
+  "d14811354a9b9bd73a84a464": "ok"
+ },
  "code": [
   "b01480df77cda4c5a309271c1ba37f4f",
   "98317c2303db5294e34eef80be30be00",
@@ -12,7 +30,8 @@
   "ff1353481f5d8b61133a4704": {
    "gk": "BGVrxrFOVxOHNQ7kH7rzm6Q0jH13DRXjeuRfuMNMWhJkk+ubq4RvJYLLX9qnAgchVkZR2jLuN1vLM91/S+l27IE=",
    "sh": "4d9864d15c97fe7b31a4d3dc61d11f8d9e184a97095cd32789671126114fdd3b",
-   "at": 1792847109
+   "at": 1792847109,
+   "used": true
   },
   "f5f3e0de9a0e14c48ce65c88": {
    "gk": "BFbWL/FI8NOqw2FjQ1F7dgz7hes5LHc5UO5k3RdNYfb7hc5gYTcEworIS+deQE+jiY/uWDHhZTUA/ubipTr4zRk=",
